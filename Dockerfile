@@ -86,9 +86,14 @@ RUN echo "*/10 * * * * root /root/videk-hosts/videk-ping.sh" \
 # install Videk CI
 RUN apt-get install -y zip
 RUN apt-get install -y make
-RUN apt-get install -y python3-flask
 RUN cd /root && \
 git clone https://github.com/matevzv/videk-ci.git
+
+# Install Experiment Controller and Monitoring System tool
+RUN apt-get install -y python3-pip \
+    && pip3 install flask flask-socketio pyzmq eventlet gunicorn
+RUN cd /root && \
+git clone --single-branch --branch master https://github.com/logatec3/logatec-experiment.git
 
 # install Jenkins
 RUN wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | \
