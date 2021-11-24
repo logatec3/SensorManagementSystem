@@ -112,6 +112,11 @@ RUN apt-get update && apt-get install -y \
 && rm -rf /var/lib/apt/lists/*
 COPY docker/mosquitto/videk.conf /etc/mosquitto/conf.d
 
+# Install testbed resource scheduler
+RUN pip3 install pymongo python-dateutil 
+RUN cd /root \
+    && git clone https://github.com/logatec3/testbed-scheduler.git
+
 # install Videk master from github
 RUN cd /root && \
 git clone https://github.com/sensorlab/SensorManagementSystem.git
