@@ -17,20 +17,35 @@
 				<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>
 				<script type="text/javascript" src="js/carvic.js"></script>
 				<script>
-						$(document).ready(function () {
-								Carvic.InitComponentList();
-								ko.applyBindings(Carvic.Model.Components);
-								$(".input")
-										.attr("data-placement", "right")
-										.tooltip();
-								$("input").keyup(function (event) {
-										if (event.keyCode == 13) {
-												$("#btnSearch").click();
-										}
-								});
-						});
+					$(document).ready(function () {
+						Carvic.InitComponentList();
+						ko.applyBindings(Carvic.Model.Components);
+
+						createIframe();
+
+						function checkUsername(){
+							let uname = "";
+							let promise = new Promise(function(resolve, reject){
+								setTimeout(()=>{
+									uname = $("#id_user").text();
+									resolve(uname);
+								}, 50);
+							});
+							return promise;
+						}
+
+						async function createIframe(){
+							do{
+								username = await checkUsername();
+							} while(!username || username.length === 0);
+							
+							let url = "/scheduler/?u=" + username;
+							let iframe = '<iframe class="embed-responsive-item" src="' + url +'"></iframe>';
+							$("#div_iframe").append(iframe);
+						}
+					});
 				</script>
-				<title>Sensor Management System - nodes</title>
+				<title>Sensor Management System - scheduler</title>
 		</head>
 		<body>
 
@@ -53,7 +68,6 @@
 														<li><a href="components.html"><i class="glyphicon glyphicon-tasks"></i> Components</a></li>
 														<li><a href="/munin.html"><i class="glyphicon glyphicon-dashboard"></i> Monitoring</a></li>
 														<li><a href="scheduler.html"><i class="glyphicon glyphicon-calendar"></i> Reservation</a></li>
-														<!--<li><a href="users.html"><i class="glyphicon glyphicon-user"></i> Users</a></li>-->
 												</ul>
 												<ul class="nav navbar-nav navbar-right">
 														<li class="active"><a href="help"><i class="glyphicon glyphicon-question-sign" title="Show help"></i> Help</a></li>
@@ -63,8 +77,10 @@
 										</div>
 								</div>
 				</div>
-					<div class="embed-responsive embed-responsive-16by9">
-						<iframe class="embed-responsive-item" src="/munin/"></iframe>
+				<span id="id_user", style="display:none", data-bind="text: $root.StdData.CurrentUsername"></span>
+					<div class="embed-responsive embed-responsive-16by9" id="div_iframe">
+						<!-- Will be added dynamically -->
+						<!--iframe class="embed-responsive-item" id="iframe" src="/scheduler/"></iframe-->
 					</div>
 		</body>
 </html>

@@ -75,7 +75,7 @@ COPY docker/rundeck/rundeckpass /root/rundeck/rundeckpass
 # install Videk cron to sync hosts
 RUN apt-get install -y curl
 RUN cd /root && \
-git clone https://github.com/matevzv/videk-hosts.git
+git clone https://github.com/logatec3/videk-hosts.git
 RUN touch /etc/cron.d/videk-hosts
 RUN echo "*/5 * * * * root /usr/bin/python3 /root/videk-hosts/videk-hosts.py" \
 >> /etc/cron.d/videk-hosts
@@ -86,9 +86,14 @@ RUN echo "*/10 * * * * root /root/videk-hosts/videk-ping.sh" \
 # install Videk CI
 RUN apt-get install -y zip
 RUN apt-get install -y make
-RUN apt-get install -y python3-flask
 RUN cd /root && \
-git clone https://github.com/matevzv/videk-ci.git
+git clone https://github.com/logatec3/videk-ci.git
+
+# Install Experiment Controller and Monitoring System tool
+RUN apt-get install -y python3-pip \
+    && pip3 install flask flask-socketio pyzmq eventlet gunicorn
+RUN cd /root && \
+git clone --single-branch --branch master https://github.com/logatec3/logatec-experiment.git
 
 # install Jenkins
 RUN wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | \
@@ -107,9 +112,14 @@ RUN apt-get update && apt-get install -y \
 && rm -rf /var/lib/apt/lists/*
 COPY docker/mosquitto/videk.conf /etc/mosquitto/conf.d
 
+# Install testbed resource scheduler
+RUN pip3 install pymongo python-dateutil 
+RUN cd /root \
+    && git clone https://github.com/logatec3/testbed-scheduler.git
+
 # install Videk master from github
 RUN cd /root && \
-git clone https://github.com/sensorlab/SensorManagementSystem.git
+git clone https://github.com/logatec3/SensorManagementSystem.git
 WORKDIR /root/SensorManagementSystem
 RUN npm install
 RUN /usr/bin/mongod --fork --logpath /var/log/mongodb.log --dbpath \

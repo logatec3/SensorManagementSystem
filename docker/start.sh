@@ -69,8 +69,8 @@ else
         SUPERVISORD="/etc/supervisor/conf.d/supervisord.conf"
         echo -e "\n[program:github-webhook]" >> "$SUPERVISORD"
         echo -e "directory=/root/videk-ci" >> "$SUPERVISORD"
-        echo -e "command=/root/videk-ci/github-webhook" "$GITHUB_TOKEN" \
-        >> "$SUPERVISORD"
+        echo -e "command=/root/videk-ci/github-webhook" "$GITHUB_TOKEN" >> "$SUPERVISORD"
+        echo -e "stdout_logfile = /root/videk-ci/webhook.log" >> "$SUPERVISORD"
         echo -e "autorestart=true" >> "$SUPERVISORD"
         sed -i s/'port=8000'/"port=$GITHUB_HOOK"/g /root/videk-ci/github-webhook
     fi
@@ -106,6 +106,53 @@ else
     echo -e "\tlocation /grafana/ {" >> "$NGINX_CONF"
     echo -e "\t\tproxy_pass http://$GRAFANA/;" >> "$NGINX_CONF"
     echo -e "\t}\n}" >> "$NGINX_CONF"
+fi
+
+if [ -z "$SCHEDULER" ]; then
+    echo "Consider adding resource scheduler!"
+else
+    NGINX_CONF="/etc/nginx/conf.d/default.conf"
+    sed -i '$ s/.$//' "$NGINX_CONF"
+    echo -e "\tlocation /scheduler/ {" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_pass http://localhost:"$SCHEDULER"/;" >> "$NGINX_CONF"
+    echo -e "\t}\n}" >> "$NGINX_CONF"
+
+    SUPERVISORD="/etc/supervisor/conf.d/supervisord.conf"
+    echo -e "\n[program:resource-scheduler]" >> "$SUPERVISORD"
+    echo -e "directory=/root/testbed-scheduler" >> "$SUPERVISORD"
+    echo -e "stdout_logfile = /root/testbed-scheduler/scheduler.log" >> "$SUPERVISORD"
+    echo -e "autorestart=true" >> "$SUPERVISORD"
+    echo -e "command=gunicorn --bind localhost:"$SCHEDULER" --worker-class eventlet -w 1 server:app" >> "$SUPERVISORD"
+
+    #sed -i s/'port=8002'/"port=$SCHEDULER"/g /root/testbed-scheduler/server.py
+fi
+
+if [ -z "$EXPERIMENT_CONTROLLER" ]; then
+    echo "Consider adding experiment controller and monitoring system!"
+else
+    NGINX_CONF="/etc/nginx/conf.d/default.conf"
+    sed -i '$ s/.$//' "$NGINX_CONF"
+    echo -e "\tlocation /controller/ {" >> "$NGINX_CONF"
+    echo -e "\t\tinclude proxy_params;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_pass http://localhost:"$EXPERIMENT_CONTROLLER"/;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header Host \$host;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header X-Forwarded-Proto \$scheme;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header X-Real-IP \$remote_addr;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_buffering off;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_http_version 1.1;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header Upgrade \$http_upgrade;" >> "$NGINX_CONF"
+    echo -e '\t\tproxy_set_header Connection "upgrade";' >> "$NGINX_CONF"    
+    echo -e "\t}\n}" >> "$NGINX_CONF"
+
+    SUPERVISORD="/etc/supervisor/conf.d/supervisord.conf"
+    echo -e "\n[program:experiment-controller]" >> "$SUPERVISORD"
+    echo -e "directory=/root/logatec-experiment/monitoring" >> "$SUPERVISORD"
+    echo -e "autorestart=true" >> "$SUPERVISORD"
+    echo -e "command=gunicorn --bind localhost:"$EXPERIMENT_CONTROLLER" --worker-class eventlet -w 1 ECMS_server:app" >> "$SUPERVISORD"
+
+    sed -i 's/CONTROLLER_HOSTNAME =.*/CONTROLLER_HOSTNAME = "tcp:\/\/193.2.205.19:5563"/1' \
+    /root/logatec-experiment/monitoring/ECMS_server.py
 fi
 
 if [ "$HTTPS" = "true" ]; then
