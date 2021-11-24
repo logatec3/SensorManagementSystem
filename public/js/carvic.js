@@ -17,7 +17,7 @@ Carvic.Model.StdData = function () {
     self.CurrentUserFullname = ko.observable("");
     self.CurrentUsername = ko.observable("");
     self.CurrentUserTooltip = ko.computed(function () {
-        return "Logged in: " + self.CurrentUserFullname() + " (" + self.CurrentUsername() + ")"; ateen
+        return "Logged in: " + self.CurrentUserFullname() + " (" + self.CurrentUsername() + ")";
     }, self);
     self.CurrentUserPage = function () {
         window.location = "user.html?u=" + self.CurrentUsername();
@@ -41,6 +41,7 @@ Carvic.Utils = {
         $("#navRight").append('<li><a href="rundeck.html"><i class="glyphicon glyphicon-wrench"></i></i> Manage</a></li>');
         $("#navRight").append('<li><a href="jenkins.html"><i class="glyphicon glyphicon-refresh"></i></i> CI</a></li>');
         $("#navRight").append('<li><a href="users.html"><i class="glyphicon glyphicon-user"></i> Users</a></li>');
+        $("#navRight").append('<li><a href="ecms.html"><i class="glyphicon glyphicon-eye-open"></i> ECMS</a></li>');
     },
 
     LoadClusterList: function (receiver, callback) {
@@ -285,6 +286,7 @@ Carvic.Model.UsersModel = function () {
 
     self.NewUserUsername = ko.observable("new1");
     self.NewUserFullName = ko.observable("new user");
+    self.NewUserMail = ko.observable("");
     self.NewUserPwd1 = ko.observable("");
     self.NewUserPwd2 = ko.observable("");
     self.NewUserType = ko.observable();
@@ -302,6 +304,7 @@ Carvic.Model.UsersModel = function () {
     self.NewUserEditing = ko.observable(false);
     self.NewUserEdit = ko.observable({
         FullName: ko.observable(""),
+        Mail: ko.observable(""),
         Status: ko.observable(""),
         Type: ko.observable("")
     });
@@ -314,6 +317,7 @@ Carvic.Model.UsersModel = function () {
         document.form.NewUserPwd2.value = "";
         document.form.NewUserFullName.value = "new user";
         document.form.NewUserUsername.value = "New1";
+        document.form.NewUserMail.value = "";
         self.NewUserEditing(false);
     }
 
@@ -358,6 +362,7 @@ Carvic.Model.UsersModel = function () {
                 self.UserList.push({
                     Username: obj.username,
                     FullName: obj.full_name,
+                    Mail: obj.mail,
                     Status: obj.status,
                     Type: obj.type,
                     LastLogin: new Date(Date.parse(obj.last_login)),
@@ -378,6 +383,7 @@ Carvic.Model.UsersModel = function () {
             data: {
                 username: self.NewUserUsername(),
                 full_name: self.NewUserFullName(),
+                mail : self.NewUserMail(),
                 type: self.NewUserType().code,
                 pwd1: self.NewUserPwd1(),
                 pwd2: self.NewUserPwd2()
@@ -406,6 +412,7 @@ Carvic.Model.UserModel = function () {
     self.CurrentUser = ko.observable({
         Username: ko.observable(""),
         FullName: ko.observable(""),
+        Mail: ko.observable(""),
         StatusStr: ko.observable(""),
         Status: ko.observable(""),
         TypeStr: ko.observable(""),
@@ -445,6 +452,7 @@ Carvic.Model.UserModel = function () {
     self.CurrentUserEditingPwd = ko.observable(false);
     self.CurrentUserEdit = ko.observable({
         FullName: ko.observable(""),
+        Mail: ko.observable(""),
         Status: ko.observable(""),
         Type: ko.observable("")
     });
@@ -517,6 +525,7 @@ Carvic.Model.UserModel = function () {
 
     self.CurrentUserStartEditing = function () {
         self.CurrentUserEdit().FullName(self.CurrentUser().FullName());
+        self.CurrentUserEdit().Mail(self.CurrentUser().Mail());
         self.CurrentUserEdit().Status(Carvic.Utils.GetMatches({ code: self.CurrentUser().Status() }, self.UserStatuses())[0]);
         self.CurrentUserEdit().Type(Carvic.Utils.GetMatches({ code: self.CurrentUser().Type() }, self.UserTypes())[0]);
         self.CurrentUserEditing(true);
@@ -540,10 +549,10 @@ Carvic.Model.UserModel = function () {
     }
 
     self.CurrentUserSave = function () {
-        if(!/^[0-9]*$/.test(self.Port())) {
-            alert("Only numbers in port section");
-            return;
-        }
+        //if(!/^[0-9]*$/.test(self.Port())) {
+        //    alert("Only numbers in port section");
+        //    //return;
+        //}
         if(self.Port() < 0 || self.Port() > 65535) {
             alert("Port number must be between 0 and 65535");
             return;
@@ -565,6 +574,7 @@ Carvic.Model.UserModel = function () {
 
         var errors = [];
         Carvic.Utils.CheckIfEmpty(self.CurrentUserEdit().FullName(), "Full name cannot be empty", errors);
+        //Carvic.Utils.CheckIfEmpty(self.CurrentUserEdit().Mail(), "E-mail address cannot be empty", errors);
         if (errors.length > 0) {
             var s = "Cannot save user:";
             errors.forEach(function (item) { s += "\n- " + item });
@@ -577,6 +587,8 @@ Carvic.Model.UserModel = function () {
         };
         if (self.CurrentUserEdit().FullName() !== self.CurrentUser().FullName())
             req.data.full_name = self.CurrentUserEdit().FullName();
+        if (self.CurrentUserEdit().Mail() !== self.CurrentUser().Mail())
+            req.data.mail = self.CurrentUserEdit().Mail();
         if (self.CurrentUserEdit().Status().code !== self.CurrentUser().Status())
             req.data.status = self.CurrentUserEdit().Status().code;
         if (self.CurrentUserEdit().Type().code !== self.CurrentUser().Type())
@@ -601,6 +613,7 @@ Carvic.Model.UserModel = function () {
             self.CurrentUser({
                 Username: ko.observable(data.username),
                 FullName: ko.observable(data.full_name),
+                Mail: ko.observable(data.mail),
                 StatusStr: ko.observable(self.UserStatusesMap[data.status].title),
                 Status: ko.observable(data.status),
                 TypeStr: ko.observable(self.UserTypesMap[data.type].title),

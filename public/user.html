@@ -96,6 +96,14 @@
                             </div>
 
                             <div class="list-group">
+                                <label class="control-label" for="inMail">E-mail </label>
+                                <div class="controls">
+                                    <span id="inMail" data-bind="text: Mail, visible: $root.CurrentUserEditing()==false"></span>
+                                    <input type="text" class="input form-control" data-bind="value: $root.CurrentUserEdit().Mail, visible: $root.CurrentUserEditing()==true" title="E-mail address of the user" />
+                                </div>
+                            </div>
+
+                            <div class="list-group">
                                 <label class="control-label" for="inType">Type </label>
                                 <div class="controls">
                                     <span id="inType" data-bind="text: TypeStr, visible: $root.CurrentUserEditing()==false"></span>

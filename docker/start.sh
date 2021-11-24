@@ -127,6 +127,34 @@ else
     #sed -i s/'port=8002'/"port=$SCHEDULER"/g /root/testbed-scheduler/server.py
 fi
 
+if [ -z "$EXPERIMENT_CONTROLLER" ]; then
+    echo "Consider adding experiment controller and monitoring system!"
+else
+    NGINX_CONF="/etc/nginx/conf.d/default.conf"
+    sed -i '$ s/.$//' "$NGINX_CONF"
+    echo -e "\tlocation /controller/ {" >> "$NGINX_CONF"
+    echo -e "\t\tinclude proxy_params;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_pass http://localhost:"$EXPERIMENT_CONTROLLER"/;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header Host \$host;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header X-Forwarded-Proto \$scheme;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header X-Real-IP \$remote_addr;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_buffering off;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_http_version 1.1;" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_set_header Upgrade \$http_upgrade;" >> "$NGINX_CONF"
+    echo -e '\t\tproxy_set_header Connection "upgrade";' >> "$NGINX_CONF"    
+    echo -e "\t}\n}" >> "$NGINX_CONF"
+
+    SUPERVISORD="/etc/supervisor/conf.d/supervisord.conf"
+    echo -e "\n[program:experiment-controller]" >> "$SUPERVISORD"
+    echo -e "directory=/root/logatec-experiment/monitoring" >> "$SUPERVISORD"
+    echo -e "autorestart=true" >> "$SUPERVISORD"
+    echo -e "command=gunicorn --bind localhost:"$EXPERIMENT_CONTROLLER" --worker-class eventlet -w 1 ECMS_server:app" >> "$SUPERVISORD"
+
+    sed -i 's/CONTROLLER_HOSTNAME =.*/CONTROLLER_HOSTNAME = "tcp:\/\/193.2.205.19:5563"/1' \
+    /root/logatec-experiment/monitoring/ECMS_server.py
+fi
+
 if [ "$HTTPS" = "true" ]; then
     if [ "$EMAIL" = "" ] || [ "$DOMAIN" = "" ]; then
         echo "Email and/or domain missing!"

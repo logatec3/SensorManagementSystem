@@ -35,7 +35,9 @@ Finally set your gmail account to send monitoring alerts.
     -e SECRET_TOKEN="secret" \  
     -e EMAIL=example@gmail.com \  
     -e PASSWORD=secret \
-    -e SCHEDULER=8002 videk
+    -e EXPERIMENT_CONTROLLER="8001" \
+    -e SCHEDULER="8002" videk
+
 
 #### Aditional features
 
