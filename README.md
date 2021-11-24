@@ -34,7 +34,8 @@ Finally set your gmail account to send monitoring alerts.
     -e GITHUB_TOKEN="secret" \  
     -e SECRET_TOKEN="secret" \  
     -e EMAIL=example@gmail.com \  
-    -e PASSWORD=secret videk
+    -e PASSWORD=secret \
+    -e SCHEDULER=8002 videk
 
 #### Aditional features
 

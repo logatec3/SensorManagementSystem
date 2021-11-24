@@ -69,8 +69,8 @@ else
         SUPERVISORD="/etc/supervisor/conf.d/supervisord.conf"
         echo -e "\n[program:github-webhook]" >> "$SUPERVISORD"
         echo -e "directory=/root/videk-ci" >> "$SUPERVISORD"
-        echo -e "command=/root/videk-ci/github-webhook" "$GITHUB_TOKEN" \
-        >> "$SUPERVISORD"
+        echo -e "command=/root/videk-ci/github-webhook" "$GITHUB_TOKEN" >> "$SUPERVISORD"
+        echo -e "stdout_logfile = /root/videk-ci/webhook.log" >> "$SUPERVISORD"
         echo -e "autorestart=true" >> "$SUPERVISORD"
         sed -i s/'port=8000'/"port=$GITHUB_HOOK"/g /root/videk-ci/github-webhook
     fi
@@ -106,6 +106,25 @@ else
     echo -e "\tlocation /grafana/ {" >> "$NGINX_CONF"
     echo -e "\t\tproxy_pass http://$GRAFANA/;" >> "$NGINX_CONF"
     echo -e "\t}\n}" >> "$NGINX_CONF"
+fi
+
+if [ -z "$SCHEDULER" ]; then
+    echo "Consider adding resource scheduler!"
+else
+    NGINX_CONF="/etc/nginx/conf.d/default.conf"
+    sed -i '$ s/.$//' "$NGINX_CONF"
+    echo -e "\tlocation /scheduler/ {" >> "$NGINX_CONF"
+    echo -e "\t\tproxy_pass http://localhost:"$SCHEDULER"/;" >> "$NGINX_CONF"
+    echo -e "\t}\n}" >> "$NGINX_CONF"
+
+    SUPERVISORD="/etc/supervisor/conf.d/supervisord.conf"
+    echo -e "\n[program:resource-scheduler]" >> "$SUPERVISORD"
+    echo -e "directory=/root/testbed-scheduler" >> "$SUPERVISORD"
+    echo -e "stdout_logfile = /root/testbed-scheduler/scheduler.log" >> "$SUPERVISORD"
+    echo -e "autorestart=true" >> "$SUPERVISORD"
+    echo -e "command=gunicorn --bind localhost:"$SCHEDULER" --worker-class eventlet -w 1 server:app" >> "$SUPERVISORD"
+
+    #sed -i s/'port=8002'/"port=$SCHEDULER"/g /root/testbed-scheduler/server.py
 fi
 
 if [ "$HTTPS" = "true" ]; then
