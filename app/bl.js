@@ -366,6 +366,8 @@ exports.new_user = function (req, callback) {
         return callback(new Error("Username cannot be empty"));
     if (!rec.full_name || rec.full_name === "")
         return callback(new Error("Full name cannot be empty"));
+    if (!rec.mail || rec.mail === "")
+        return callback(new Error("Mail address cannot be empty"));
     if (rec.pwd1 !== rec.pwd2)
         return callback(new Error("Entered password don't match"));
     if (rec.pwd1.length < 6)
@@ -375,6 +377,7 @@ exports.new_user = function (req, callback) {
             var rec2 = {
                 username: rec.username.toLowerCase(),
                 full_name: rec.full_name,
+                mail: rec.mail,
                 pwd_hash: utils_hash.create_pwd_hash(rec.pwd1),
                 status: "active",
                 token: crypto.randomBytes(24).toString('base64'),
@@ -388,6 +391,7 @@ exports.new_user = function (req, callback) {
                 var h = {
                     node: null,
                     user: rec2.username,
+                    mail: rec2.mail,
                     status: rec2.status,
                     code: "user_change",
                     ts: new Date(),
@@ -406,7 +410,7 @@ exports.new_user = function (req, callback) {
 
 exports.update_user = function (req, callback) {
     var rec = req.data;
-    var rec2 = { full_name: "", status: "", type: "" };
+    var rec2 = { full_name: "", mail: "", status: "", type: "" };
     xutil.override_members(rec, rec2, false);
     xutil.remove_empty_members(rec2);
     db.get_user(rec.username, function (err, data) {
@@ -419,6 +423,7 @@ exports.update_user = function (req, callback) {
             var h = {
                 node: null,
                 user: rec.username,
+                mail: rec.mail,
                 status: rec2.status,
                 code: "user_change",
                 ts: new Date(),
@@ -448,6 +453,7 @@ exports.regenerate_token = function (req, callback) {
             var h = {
                 node: null,
                 user: rec.username,
+                mail: rec.mail,
                 token: rec2.token,
                 status: rec2.status,
                 code: "user_change",
@@ -471,6 +477,7 @@ exports.delete_user = function (req, callback) {
             var h = {
                 node: null,
                 user: username,
+                
                 status: "deleted",
                 code: "user_change",
                 ts: new Date(),
