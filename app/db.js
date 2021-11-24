@@ -899,6 +899,19 @@ function get_user(username, callback) {
     });
 };
 
+/*function get_user_mail(username, callback) {
+    var query = { username: username };
+    db[collection_users].find(query, function (err, docs) {
+        if (err) {
+            callback(err);
+        } else if (!docs || docs.length === 0) {
+            callback({ error: "Specified token is not valid.", status: 401 });
+        } else {
+            callback(docs);
+        }
+    });
+};*/
+
 function get_users_token(req, callback) {
     var query = { token: req };
     db[collection_users].find(query, function (err, docs) {
