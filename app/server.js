@@ -419,11 +419,19 @@ function run() {
     db_syncer = options.db_syncer;
 
     //prepare help file
-    console.log("Caching help file...");
-    var md_content = fs.readFileSync("docs/docs.md") + "";
-    var html_frame = fs.readFileSync("public/help.htmlx") + "";
-    var md_parser = require("marked");
-    help_content = html_frame.replace("${main_content}", md_parser(md_content));
+    //console.log("Caching help file...");
+    //var md_content = fs.readFileSync("docs/docs.md") + "";
+    //var html_frame = fs.readFileSync("public/help.htmlx") + "";
+    //var md_parser = require("marked");
+    //help_content = html_frame.replace("${main_content}", md_parser(md_content));
+
+    // PRODUCES ERROR:
+    // /root/SensorManagementSystem/node_modules/mongodb/lib/utils.js:123
+    // process.nextTick(function() { throw err; });
+    //                               ^
+    // TypeError: md_parser is not a function
+    // at Object.init (/root/SensorManagementSystem/app/server.js:426:58)
+    // at /root/SensorManagementSystem/app.js:62:25
 
     // prepare login file
     console.log("Caching login page...");
