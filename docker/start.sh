@@ -147,12 +147,12 @@ else
 
     SUPERVISORD="/etc/supervisor/conf.d/supervisord.conf"
     echo -e "\n[program:experiment-controller]" >> "$SUPERVISORD"
-    echo -e "directory=/root/logatec-experiment/monitoring" >> "$SUPERVISORD"
+    echo -e "directory=/root/logatec-experiment/monitor" >> "$SUPERVISORD"
     echo -e "autorestart=true" >> "$SUPERVISORD"
     echo -e "command=gunicorn --bind localhost:"$EXPERIMENT_CONTROLLER" --worker-class eventlet -w 1 ECMS_server:app" >> "$SUPERVISORD"
 
     sed -i 's/CONTROLLER_HOSTNAME =.*/CONTROLLER_HOSTNAME = "tcp:\/\/193.2.205.19:5563"/1' \
-    /root/logatec-experiment/monitoring/ECMS_server.py
+    /root/logatec-experiment/monitor/ECMS_server.py
 fi
 
 if [ "$HTTPS" = "true" ]; then
