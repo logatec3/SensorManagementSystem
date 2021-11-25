@@ -60,6 +60,10 @@ else
     if [ "$GITHUB_TOKEN" = "" ] || [ "$SECRET_TOKEN" = "" ]; then
         echo "Github and/or secret webhook token missing!"
     else
+        cd /root/videk-ci 
+        git pull 
+        cd /root/SensorManagementSystem
+
         NGINX_CONF="/etc/nginx/conf.d/default.conf"
         sed -i '$ s/.$//' "$NGINX_CONF"
         echo -e "\tlocation /pyload {" >> "$NGINX_CONF"
@@ -111,6 +115,10 @@ fi
 if [ -z "$SCHEDULER" ]; then
     echo "Consider adding resource scheduler!"
 else
+    cd /root/testbed-scheduler 
+    git pull 
+    cd /root/SensorManagementSystem
+
     NGINX_CONF="/etc/nginx/conf.d/default.conf"
     sed -i '$ s/.$//' "$NGINX_CONF"
     echo -e "\tlocation /scheduler/ {" >> "$NGINX_CONF"
@@ -130,6 +138,10 @@ fi
 if [ -z "$EXPERIMENT_CONTROLLER" ]; then
     echo "Consider adding experiment controller and monitoring system!"
 else
+    cd /root/logatec-experiment 
+    git pull 
+    cd /root/SensorManagementSystem
+    
     NGINX_CONF="/etc/nginx/conf.d/default.conf"
     sed -i '$ s/.$//' "$NGINX_CONF"
     echo -e "\tlocation /controller/ {" >> "$NGINX_CONF"
@@ -147,12 +159,12 @@ else
 
     SUPERVISORD="/etc/supervisor/conf.d/supervisord.conf"
     echo -e "\n[program:experiment-controller]" >> "$SUPERVISORD"
-    echo -e "directory=/root/logatec-experiment/monitoring" >> "$SUPERVISORD"
+    echo -e "directory=/root/logatec-experiment/monitor" >> "$SUPERVISORD"
     echo -e "autorestart=true" >> "$SUPERVISORD"
     echo -e "command=gunicorn --bind localhost:"$EXPERIMENT_CONTROLLER" --worker-class eventlet -w 1 ECMS_server:app" >> "$SUPERVISORD"
 
     sed -i 's/CONTROLLER_HOSTNAME =.*/CONTROLLER_HOSTNAME = "tcp:\/\/193.2.205.19:5563"/1' \
-    /root/logatec-experiment/monitoring/ECMS_server.py
+    /root/logatec-experiment/monitor/ECMS_server.py
 fi
 
 if [ "$HTTPS" = "true" ]; then
