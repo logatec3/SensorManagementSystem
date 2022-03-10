@@ -138,7 +138,9 @@ fi
 if [ -z "$EXPERIMENT_CONTROLLER" ]; then
     echo "Consider adding experiment controller and monitoring system!"
 else
-    cd /root/logatec-experiment 
+    cd /root/logatec-experiment
+    # Uncoment the following line to include the RealTime localization module into ECMS system 
+    git checkout localization
     git pull 
     cd /root/SensorManagementSystem
     
